@@ -1,0 +1,7 @@
+FROM registry.fedoraproject.org/fedora:34
+MAINTAINER Mahesh Shetty <mashetty@redhat.com>
+RUN dnf install -y python3 strace ltrace less lsof rsync tar pip\
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+RUN pip install kubernetes boto3
+ADD rgw*.py /opt/

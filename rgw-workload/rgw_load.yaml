@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rgw-load-pvc
+  namespace: test-project
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ocs-storagecluster-cephfs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rgw-load
+  labels:
+    app: rgw-load
+  namespace: test-project
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: rgw-load
+  template:
+    metadata:
+      labels:
+        app: rgw-load
+    spec:
+      topologySpreadConstraints:
+        - labelSelector:
+            matchLabels:
+              app: rgw-load
+          maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+        - labelSelector:
+             matchLabels:
+               app: rgw-load
+          maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+      nodeSelector:
+        node-role.kubernetes.io/worker: ""
+      containers:
+      - name: rgw-load
+        image: quay.io/mashetty/rgw_load:latest
+        command: ['/opt/rgw_write.py', '10']
+        workingDir: /mnt/target
+        volumeMounts:
+        - mountPath: /mnt/target
+          name: rgw-load-volume
+      volumes:
+      - name: rgw-load-volume
+        persistentVolumeClaim:
+          claimName: rgw-load-pvc
