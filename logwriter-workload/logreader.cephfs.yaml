@@ -33,7 +33,7 @@ spec:
         node-role.kubernetes.io/worker: ""
       containers:
       - name: logreader
-        image: quay.io/ocsci/logwriter:latest
+        image: quay.io/aaruniaggarwal/logwriter:fedora-34
         command:
         - /bin/bash
         - "-c"
